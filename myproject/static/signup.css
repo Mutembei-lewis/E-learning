@@ -1,0 +1,31 @@
+body{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-size: 18px;
+}
+.base_container{
+background: #009FFF;  /* fallback for old browsers */
+background: -webkit-linear-gradient(to right, #ec2F4B, #009FFF);  /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to right, #ec2F4B, #009FFF); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+height: 100%;
+
+}
+.form_content{
+    margin: auto;
+    position: relative;
+    width: 35%;
+    height: 90vh;
+    border-radius: 32px;
+    z-index: 1;
+    padding-top: 15px;
+
+     -moz-box-shadow: 21px 15px 5px 1px rgba(0,0,0,0.29);
+    box-shadow: 21px 15px 5px 1px rgba(0,0,0,0.29); 
+    -webkit-box-shadow: 7px 15px 65px 15px rgba(15, 6, 4, 0.86);
+    -moz-box-shadow: 7px 15px 65px 15px rgba(14, 3, 2, 0.86);
+    box-shadow: 7px 15px 65px 15px rgba(15, 4, 2, 0.86);
+    color:white;
+    z-index: 5;
+
+}

@@ -1,0 +1,30 @@
+{% extends 'base.html'%}
+{% block head %}
+{{super()}}
+<link rel="stylesheet" href="/static/login.css">
+ <title> LOgin</title>
+{% endblock %}
+{%block  content%}
+
+<div class="container form_container  mx-auto">
+    <h1 class="text-center">Sign In</h1>
+<form action="login" method="post" >
+    {{ form.hidden_tag() }}
+    <p class="text-dark pl-5">
+        {{ form.email.label }}<br>
+      <div class="mail "> {{ form.email(size=32) }}</div> 
+    </p>
+    <p class="text-dark pl-5">
+        {{ form.password.label }}<br>
+     <div class="mail ">    {{ form.password(size=32) }}</div>
+    </p>
+    <p class="text-center">
+        {{form.submit()}} 
+    </p>
+    <p>  Don't have an account? <a href="{{url_for('register')}}" class="text-primary"> Sign up</a><a href="{{url_for('reset_request')}}" class="ml-3">    Forgot password</a></p>
+</form>
+
+
+</div>
+
+{%endblock%}

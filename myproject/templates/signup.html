@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block head %}
+{{super()}}
+<link rel="stylesheet" href="/static/signup.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css">
+<title>Registration</title>
+{% endblock  %}
+
+{% block content %}
+ <div class="container-fluid base_container text-center bg-light"> 
+     <h3 class="text-light"> REGISTER ACCOUNT</h3>
+     <div class="form_content container p-5  bg-info " >
+         <form action="" method="post">
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.username.label }}<br>
+                {{ form.username(size=32) }}<br>
+                {% for error in form.username.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.email.label }}<br>
+                {{ form.email(size=32) }}<br>
+                {% for error in form.email.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.password.label }}<br>
+                {{ form.password(size=32) }}<br>
+                {% for error in form.password.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>
+                {{ form.password2.label }}<br>
+                {{ form.password2(size=32) }}<br>
+                {% for error in form.password2.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+            <p>{{ form.submit() }}</p>
+         </form>
+
+        <p> Already have an account ? <a href="{{url_for('login')}}"> Login</a> </p>
+     </div>
+    
+ </div>
+
+    
+{% endblock  %}

@@ -1,0 +1,244 @@
+This is the summary of the Flask-login module
+{% comment %} link to blog for this whole tutorial {% endcomment %}
+https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins
+Chapter 1: Hello, World!
+Chapter 2: Templates
+Chapter 3: Web Forms
+Chapter 4: Database
+Chapter 5: User Logins (this article)
+Chapter 6: Profile Page and Avatars
+Chapter 7: Error Handling
+Chapter 8: Followers
+Chapter 9: Pagination
+Chapter 10: Email Support
+Chapter 11: Facelift
+Chapter 12: Dates and Times
+Chapter 13: I18n and L10n
+Chapter 14: Ajax
+Chapter 15: A Better Application Structure
+Chapter 16: Full-Text Search
+Chapter 17: Deployment on Linux
+Chapter 18: Deployment on Heroku
+Chapter 19: Deployment on Docker Containers
+Chapter 20: Some JavaScript Magic
+Chapter 21: User Notifications
+Chapter 22: Background Jobs
+Chapter 23: Application Programming Interfaces (APIs)
+
+PASSWORD HASHING PROCESS SUMMARISATION 
+
+ >the package implemented for password hashing is the Werkzeug
+here is a demenstration of how to hash a PASSWORD
+
+
+{% comment %} >>> from werkzeug.security import generate_password_hash
+>>> hash = generate_password_hash('foobar')
+>>> hash
+'pbkdf2:sha256:50000$vT9fkZM8$04dfa35c6476acf7e788a1b5b3c35e217c78dc04539d295f011f01f18cd2175f' {% endcomment %} {% endcomment %}
+> The verification process is done with a second function from werkzeug as follows 
+
+{% comment %} >>> from werkzeug.security import check_password_hash
+>>> check_password_hash(hash, 'foobar')
+True
+>>> check_password_hash(hash, 'barfoo')
+False {% endcomment %}
+ the whole password hashing logic can be implemented as two new methods in the user model:
+
+ from werkzeug.security import generate_password_hash, check_password_hash
+
+# ...
+
+{% comment %} class User(db.Model):
+    # ...
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password) {% endcomment %}
+
+
+>Introduction to Flask-login Extension
+
+Flask-login needs to be created and initalised right after the application instance is created
+here's the syntax
+{% comment %} app/init.py {% endcomment %}
+
+{% comment %} from flask_login import LoginManager
+
+app = Flask(__name__)
+# ...
+login = LoginManager(app)
+ {% endcomment %}
+
+
+> Preparing the user model for Flask-Login
+The flask-login extension works with the applications user model and expects certain properties and methods to be implemented in it.
+it can work with user models implemented on any database system
+
+>The four required items are listed below
+
+  * -  is_authenticated: a property that is True if the user has valid credentials or False otherwise.
+  * -  is_active: a property that is True if the user's account is active or False otherwise.
+  * -  is_anonymous: a property that is False for regular users, and True for a special, anonymous user.
+  * -  get_id(): a method that returns a unique identifier for the user as a string (unicode, if using Python 2).
+
+I can implement these four easily, but since the implementations are fairly generic, Flask-Login provides a mixin class called UserMixin
+ that includes generic implementations that are appropriate for most user model classes. Here is how the mixin class is added to the model:
+
+{% comment %} app/models.py: Flask-Login user mixin class {% endcomment %}
+
+# ...
+{% comment %} from flask_login import UserMixin
+
+class User(UserMixin, db.Model {% endcomment %}
+
+>THE USER LOADER function
+
+flask_login keeps track of the logged in user by storing its unjque identifier in Flask's user session, a storage space assigned to eachuser who connects to
+the application.Each time the logged-in user navigates to a new page, Flask=Login retrieves the ID of the user from the seeion, and then loads that user into memory.
+{% comment %} app/models.py
+from app import login
+# ...
+
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id)) {% endcomment %}
+
+ The user loader is registered with Flask-Login with the @login.user_loader decorator. The id that Flask-Login passes to the function as an argument is going to be a string,
+  so databases that use numeric IDs need to convert the string to integer as you see above.
+
+  Logging Users In
+
+  {% comment %} app/routes.py: Login view function logic
+
+# ...
+from flask_login import current_user, login_user
+from app.models import User
+
+# ...
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+   
+
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+        login_user(user, remember=form.remember_me.data)
+        return redirect(url_for('index'))
+    return render_template('login.html', title='Sign In', form=form) {% endcomment %}
+
+#### The current_user variable comes from Flask-login and can be used at anytime during the handling to obtain the user object
+####that represents the client of the request
+
+The lines 125 and 126 deal with a weird situation . Imagine you have a user that is logged in and the user navigatesto the
+/login URL of your application. Clearly thats a mistake and we cannot allow that so we redirect them the the home page
+
+flash() - returns a message to the user 
+
+
+
+
+Logging Users Out 
+This can be done with Flask-Login's logout_user() function . Here's the logout view function
+{% comment %} app/routes.py: Logout view function
+
+# ...
+from flask_login import logout_user
+
+# ...
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index')) {% endcomment %}
+To expose this link to users, I can make the Login link in the navigation bar automatically switch to a Logout link after the user logs in. 
+This can be done with a conditional in the base.html template:
+
+
+app/templates/base.html: Conditional login and logout links
+
+    {% comment %} <div>
+        Microblog:
+        <a href="{{ url_for('index') }}">Home</a>
+        {% if current_user.is_anonymous %}
+        <a href="{{ url_for('login') }}">Login</a>
+        {% else %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+    </div> {% endcomment %}
+
+The is_anonymous property is one of the attributes that Flask-Login adds to user objects through the UserMixin class. The current_user.is_anonymous expression is going to be
+ True only when the user is not logged in
+
+Requiring Users To login
+Flask-logi prov9des a very useful feature that forces users to login before they can view certain pages of the application
+If  a user who is not logged in tries to view  a protected page, Flask-Login automatically redirect  the user  to the login form
+and only redirect back to the page the user wanted to view after the login process
+
+For  this feature to be implemented ,Flask-Login needs to know what is the view function that handles the logins
+This can be added in app/init.py
+
+{% comment %} # ...
+login = LoginManager(app)
+login.login_view = 'login' {% endcomment %}
+
+The 'login' value above is the function (or endpoint) name for the login view. In other words, the name you would use in a url_for() call to get the URL
+The way Flask-Login protects a view function against anonymous users is with a decorator called @login_required. When you add this decorator to a view function below the @app.
+route decorators from Flask, the function becomes protected and will not allow access to users that are not authenticated. Here is how the decorator can be applied to the index view function of the application:
+
+{% comment %} app/routes.py: @login\_required decorator
+
+from flask_login import login_required
+
+@app.route('/')
+@app.route('/index')
+@login_required
+def index():
+    # ... {% endcomment %}
+
+    REDIRECTING User back to the page they requested aftera a successfull login using the "next" query string argument
+
+
+The next query string argument is set to the original URL, so the application can use that to redirect back after login.
+Here is a snippet of code that shows how to read and process the next query string argument:
+
+
+app/routes.py: Redirect to "next" page
+
+{% comment %} from flask import request
+from werkzeug.urls import url_parse
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # ...
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+        login_user(user, remember=form.remember_me.data)
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('index')
+        return redirect(next_page)
+    # ... {% endcomment %}
+
+Right after the user is logged in by calling Flask-Login's login_user() function, the value of the next query string argument
+ is obtained. Flask provides a request variable that contains all the information that the client sent with the request.
+  In particular, the request.args attribute exposes the contents of the query string in a friendly dictionary format. 
+  There are actually three possible cases that need to be considered
+ to determine where to redirect after a successful login:
+
+If the login URL does not have a next argument, then the user is redirected to the index page.
+If the login URL includes a next argument that is set to a relative path (or in other words, a URL without the domain portion), then the user is redirected to that URL.
+If the login URL includes a next argument that is set to a full URL that includes a domain name, then the user is redirected to the index page.
+The first and second cases are self-explanatory. The third case is in place to make the application more secure. An attacker could insert a URL to a malicious site in the next argument,
+ so the application only redirects when the URL is relative, which ensures that the redirect stays within the same site as the application. To determine if the URL is relative or absolute,
+  I parse it with Werkzeug's url_parse() function and then check if the netloc component is set or not.

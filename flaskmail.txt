@@ -1,0 +1,57 @@
+INTRODUCTION TO FLASK MAIL 
+{% comment %} installation command: (venv) $ pip install flask-mail {% endcomment %}
+
+The password reset links will have a secure token in them. 
+To generate these tokens, I'm going to use JSON Web Tokens, which also have a popular Python package:
+
+{% comment %} (venv) $ pip install pyjwt {% endcomment %}
+ you'll  need to create an instance right after the application is created 
+
+ app/__init__.py: Flask-Mail instance.
+
+{% comment %} # ...
+from flask_mail import Mail
+
+app = Flask(__name__)
+# ...
+mail = Mail(app) {% endcomment %}
+
+If you prefer to have emails sent for real, you need to use a real email server.
+here are the environment variables 
+
+{% comment %} (venv) $ export MAIL_SERVER=smtp.googlemail.com
+(venv) $ export MAIL_PORT=587
+(venv) $ export MAIL_USE_TLS=1
+(venv) $ export MAIL_USERNAME=<your-gmail-username>
+(venv) $ export MAIL_PASSWORD=<your-gmail-password> {% endcomment %}
+
+running flask_mail from the flask shell
+To learn how Flask-Mail works, I'll show you how to send an email from a Python shell. So fi
+Python with flask shell, and then run the following commands:
+
+{% comment %} >>> from flask_mail import Message
+>>> from app import mail
+>>> msg = Message('test subject', sender=app.config['ADMINS'][0],
+... recipients=['your-email@example.com'])
+>>> msg.body = 'text body'
+>>> msg.html = '<h1>HTML body</h1>'
+>>> mail.send(msg) {% endcomment %}
+
+here's a simple email framework sample :
+app/email.py: Email sending wrapper function.
+
+{% comment %} from flask_mail import Message
+from app import mail
+
+def send_email(subject, sender, recipients, text_body, html_body):
+    msg = Message(subject, sender=sender, recipients=recipients)
+    msg.body = text_body
+    msg.html = html_body
+    mail.send(msg) {% endcomment %}
+
+    styling templates of the form syntax example i.e adding css :
+
+    {% comment %} {{form.sumbit(class = "btn btn-outline-info")}} {% endcomment %}
+here's  how we style flask messages by passing  class methods arguments
+
+flash('the token is invalid or has already expired', 'warning')
